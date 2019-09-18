@@ -3,3 +3,5 @@ services:
 
   core:
     build: ./core
+    depends_on:
+    env_file: .env
