@@ -5,3 +5,25 @@ services:
     build: ./core
     depends_on:
     env_file: .env
+
+  telegram:
+    build: ./telegram
+    depends_on:
+      - core
+    environment:
+      BOT_TOKEN: ${TELEGRAM_TOKEN}
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - "dbdata:/var/lib/postgresql/data"
+
+  hydra:
+    image: hydra # todo
+    environment:
+      DSN: "postgres://postgres:${DB_PASSWORD}@db:5432/postgres?sslmode=disable"
+
+volumes:
+  dbdata:
