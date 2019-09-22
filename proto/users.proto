@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package pb;
+
+service Users {
+    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+}
+
+message CreateUserRequest {
+    // TODO:
+}
+
+message CreateUserResponse {
+    // TODO:
+}
+
+message User {
+    // TODO:
+}
