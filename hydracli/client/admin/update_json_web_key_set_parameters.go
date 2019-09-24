@@ -16,7 +16,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	models "github.com/ory/hydra/sdk/go/hydra/models"
+	models "github.com/petuhovskiy/grpc-hydra-bench/hydracli/models"
 )
 
 // NewUpdateJSONWebKeySetParams creates a new UpdateJSONWebKeySetParams object

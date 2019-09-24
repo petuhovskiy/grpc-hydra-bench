@@ -13,7 +13,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	models "github.com/ory/hydra/sdk/go/hydra/models"
+	models "github.com/petuhovskiy/grpc-hydra-bench/hydracli/models"
 )
 
 // IntrospectOAuth2TokenReader is a Reader for the IntrospectOAuth2Token structure.

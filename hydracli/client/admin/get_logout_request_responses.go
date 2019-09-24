@@ -13,7 +13,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	models "github.com/ory/hydra/sdk/go/hydra/models"
+	models "github.com/petuhovskiy/grpc-hydra-bench/hydracli/models"
 )
 
 // GetLogoutRequestReader is a Reader for the GetLogoutRequest structure.
