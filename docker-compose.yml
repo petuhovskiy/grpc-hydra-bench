@@ -1,29 +1,71 @@
 version: "3.7"
 services:
 
-  core:
-    build: ./core
+  # core:
+  #   build: ./core
+  #   depends_on:
+  #   env_file: .env
+
+  auth:
+    build: ./auth
     depends_on:
-    env_file: .env
+      - app-db
+    environment:
+      - DB_HOST=app-db
+      - DB_PASSWORD=${DB_APP_PASSWORD}
+      - HYDRA_ADMIN_URL=http://hydra:4445
+      - HYDRA_PUBLIC_URL=http://hydra:4444
+    restart: unless-stopped
 
   telegram:
     build: ./telegram
     depends_on:
-      - core
+      - auth
     environment:
       BOT_TOKEN: ${TELEGRAM_TOKEN}
+    restart: unless-stopped
 
-  db:
+  app-db:
     image: postgres
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ${DB_APP_PASSWORD}
     volumes:
-      - "dbdata:/var/lib/postgresql/data"
+      - "data-app:/var/lib/postgresql/data"
+    restart: unless-stopped
 
   hydra:
-    image: hydra # todo
+    image: oryd/hydra:latest
+    depends_on:
+      - hydra-migrate
+    command:
+      serve all --dangerous-force-http
+    ports: 
+      - "4444:4444" # Public port
+      - "4445:4445" # Admin port
     environment:
-      DSN: "postgres://postgres:${DB_PASSWORD}@db:5432/postgres?sslmode=disable"
+      - DSN=postgres://postgres:${DB_HYDRA_PASSWORD}@hydra-db:5432/postgres?sslmode=disable&max_conns=20&max_idle_conns=4
+      - URLS_SELF_ISSUER=https://127.0.0.1:4444
+      - SECRETS_SYSTEM=verySecretMuchSecure
+    restart: unless-stopped
+
+  hydra-migrate:
+    image: oryd/hydra:latest
+    depends_on:
+      - hydra-db
+    environment:
+      - DSN=postgres://postgres:${DB_HYDRA_PASSWORD}@hydra-db:5432/postgres?sslmode=disable&max_conns=20&max_idle_conns=4
+    command:
+      migrate sql -e --yes
+    restart: on-failure
+
+  hydra-db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: ${DB_HYDRA_PASSWORD}
+    volumes:
+      - "data-hydra:/var/lib/postgresql/data"
+    restart: unless-stopped
 
 volumes:
-  dbdata:
+  data-hydra:
+  data-app:

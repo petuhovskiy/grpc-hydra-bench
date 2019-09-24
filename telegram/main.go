@@ -37,6 +37,7 @@ func createUpdates(bot *tgbotapi.BotAPI) tgbotapi.UpdatesChannel {
 }
 
 func main() {
+	log.SetFlags(log.Llongfile)
 	botToken := os.Getenv("BOT_TOKEN")
 
 	db, err := bolt.Open("./bolt.db", 0600, nil)

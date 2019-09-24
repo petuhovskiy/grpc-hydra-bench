@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service Auth {
+
+    // GetUserInfo принимает авторизованный токен,
+    // и по нему возвращает информацию о пользователе.
+    rpc GetUserInfo (google.protobuf.Empty) returns (UserInfo);
+}
+
+message UserInfo {
+    uint64 user_id = 1;
+    string username = 2; // имя пользователя
+    google.protobuf.Timestamp created_at = 3; // когда пользователь зарегистрировался
+}
