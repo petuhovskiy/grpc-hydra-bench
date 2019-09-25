@@ -3,13 +3,18 @@ package libauth
 import (
 	"strings"
 
-	"github.com/petuhovskiy/grpc-hydra-bench/hydracli/client/admin"
+	"github.com/petuhovskiy/grpc-hydra-bench/auth/hydra/client/admin"
 )
 
 func Validator(cli *admin.Client, scopes ...string) func(string) (interface{}, error) {
 	return func(token string) (interface{}, error) {
-		params := admin.IntrospectOAuth2TokenParams{
-			Scope: strings.Join(scopes, " "),
+		var scope *string
+		if len(scopes) > 0 {
+			tmp := strings.Join(scopes, " ")
+			scope = &tmp
+		}
+		params := &admin.IntrospectOAuth2TokenParams{
+			Scope: scope,
 			Token: token,
 		}
 

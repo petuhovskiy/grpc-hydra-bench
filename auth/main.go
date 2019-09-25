@@ -5,28 +5,26 @@ package main
 import (
 	"log"
 	"net"
-	"url"
+	"net/url"
 	"os"
 
 	"github.com/petuhovskiy/grpc-hydra-bench/auth/impl"
-	"github.com/petuhovskiy/grpc-hydra-bench/auth/pb"
-	"github.com/petuhovskiy/grpc-hydra-bench/auth/users"
 	"github.com/petuhovskiy/grpc-hydra-bench/auth/libauth"
 	"github.com/petuhovskiy/grpc-hydra-bench/auth/middleware"
+	"github.com/petuhovskiy/grpc-hydra-bench/auth/pb"
+	"github.com/petuhovskiy/grpc-hydra-bench/auth/users"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/petuhovskiy/grpc-hydra-bench/hydracli/client/admin"
-	"github.com/petuhovskiy/grpc-hydra-bench/hydracli/client"
-	"github.com/petuhovskiy/grpc-hydra-bench/hydracli"
+	"github.com/petuhovskiy/grpc-hydra-bench/auth/hydra/client"
+	"github.com/petuhovskiy/grpc-hydra-bench/auth/hydra/client/admin"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-
 )
 
 var schema = users.Schema
@@ -47,8 +45,11 @@ func connectDatabase() *sqlx.DB {
 }
 
 func initHydraAdmin() *admin.Client {
-	adminURL := url.Parse(os.Getenv("HYDRA_ADMIN_URL"))
-	cli := hydra.NewHTTPClientWithConfig(nil, &client.TransportConfig{Schemes: []string{adminURL.Scheme}, Host: adminURL.Host, BasePath: adminURL.Path})
+	adminURL, err := url.Parse(os.Getenv("HYDRA_ADMIN_URL"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	cli := client.NewHTTPClientWithConfig(nil, &client.TransportConfig{Schemes: []string{adminURL.Scheme}, Host: adminURL.Host, BasePath: adminURL.Path})
 	return cli.Admin
 }
 
@@ -62,9 +63,9 @@ func main() {
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_recovery.UnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(),
-			middleware.Auth{
+			(&middleware.Auth{
 				Validate: libauth.Validator(hydraAdmin),
-			}.Interceptor,
+			}).Interceptor,
 		)),
 	}
 
