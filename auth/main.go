@@ -16,11 +16,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/petuhovskiy/grpc-hydra-bench/auth/hydra/client"
-	"github.com/petuhovskiy/grpc-hydra-bench/auth/hydra/client/admin"
+	"github.com/ory/hydra/sdk/go/hydra/client"
+	"github.com/ory/hydra/sdk/go/hydra/client/admin"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -31,7 +31,7 @@ var schema = users.Schema
 
 func connectDatabase() *sqlx.DB {
 	db, err := sqlx.Connect(
-		"postgres",
+		"pgx",
 		os.ExpandEnv(
 			"host=${DB_HOST} password=${DB_PASSWORD} user=postgres dbname=postgres sslmode=disable",
 		),

@@ -3,7 +3,7 @@ package libauth
 import (
 	"strings"
 
-	"github.com/petuhovskiy/grpc-hydra-bench/auth/hydra/client/admin"
+	"github.com/ory/hydra/sdk/go/hydra/client/admin"
 )
 
 func Validator(cli *admin.Client, scopes ...string) func(string) (interface{}, error) {
