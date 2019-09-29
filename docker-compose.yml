@@ -10,6 +10,9 @@ services:
     build: ./auth
     depends_on:
       - app-db
+    ports:
+      - "8080:8080"
+      - "3000:3000"
     environment:
       - DB_HOST=app-db
       - DB_PASSWORD=${DB_APP_PASSWORD}
@@ -19,10 +22,10 @@ services:
 
   telegram:
     build: ./telegram
+    env_file:
+      - ./secret.env
     depends_on:
       - auth
-    environment:
-      BOT_TOKEN: ${TELEGRAM_TOKEN}
     restart: unless-stopped
 
   app-db:
@@ -42,9 +45,12 @@ services:
     ports: 
       - "4444:4444" # Public port
       - "4445:4445" # Admin port
+      - "5555:5555" # Example port
     environment:
       - DSN=postgres://postgres:${DB_HYDRA_PASSWORD}@hydra-db:5432/postgres?sslmode=disable&max_conns=20&max_idle_conns=4
-      - URLS_SELF_ISSUER=https://127.0.0.1:4444
+      - URLS_SELF_ISSUER=http://127.0.0.1:4444
+      - URLS_CONSENT=http://127.0.0.1:8080/consent
+      - URLS_LOGIN=http://127.0.0.1:8080/login
       - SECRETS_SYSTEM=verySecretMuchSecure
     restart: unless-stopped
 

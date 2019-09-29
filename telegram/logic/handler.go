@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 
 	"github.com/petuhovskiy/grpc-hydra-bench/telegram/store"
@@ -51,13 +51,47 @@ func HandleUpdate(ctx context.Context, upd tgbotapi.Update) {
 		s.ChatID = chatID
 	}
 
-	s.Counter++
+	// actual logic
 
-	spew.Dump(msg)
-	spew.Dump(s)
+	sendText := func(text string) {
+		desc.Bot.Send(tgbotapi.NewMessage(
+			chatID,
+			text,
+		))
+	}
 
-	desc.Bot.Send(tgbotapi.NewMessage(
-		chatID,
-		fmt.Sprintf("Counter: %v", s.Counter),
-	))
+	text := msg.Text
+	args := strings.Split(text, " ")
+
+	if len(args) == 0 {
+		sendText("only text messages are supported for now")
+		return
+	}
+
+	r := initRouter()
+	r.on("ping", func() { sendText("pong") })
+	r.on("count", func() {
+		s.Counter++
+		sendText(fmt.Sprintf("Counter: %v", s.Counter))
+	})
+	r.on("token", func() {
+		token := args[1]
+		s.Token = token
+		sendText("token set")
+	})
+	r.on("userinfo", func() {
+		// TODO:
+	})
+
+	commandNotFound := func() {
+		help := "Command not found.\n\nAvailable commands:"
+		for k := range r.cmds {
+			help += fmt.Sprintf("\n%s", k)
+		}
+		sendText(help)
+	}
+
+	r.route(args, func() {
+		commandNotFound()
+	})
 }

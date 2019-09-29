@@ -4,7 +4,11 @@ import (
 	"strings"
 
 	"github.com/ory/hydra/sdk/go/hydra/client/admin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
+var ErrInactiveToken = status.Errorf(codes.PermissionDenied, "token is inactive")
 
 func Validator(cli *admin.Client, scopes ...string) func(string) (interface{}, error) {
 	return func(token string) (interface{}, error) {
@@ -18,6 +22,16 @@ func Validator(cli *admin.Client, scopes ...string) func(string) (interface{}, e
 			Token: token,
 		}
 
-		return cli.IntrospectOAuth2Token(params, nil)
+		resp, err := cli.IntrospectOAuth2Token(params, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		payload := resp.Payload
+		if payload.Active == nil || *payload.Active == false {
+			return nil, ErrInactiveToken
+		}
+
+		return payload, nil
 	}
 }

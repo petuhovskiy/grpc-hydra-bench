@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/petuhovskiy/grpc-hydra-bench/auth/hydracon"
 	"github.com/petuhovskiy/grpc-hydra-bench/auth/impl"
 	"github.com/petuhovskiy/grpc-hydra-bench/auth/libauth"
 	"github.com/petuhovskiy/grpc-hydra-bench/auth/middleware"
@@ -40,7 +41,10 @@ func connectDatabase() *sqlx.DB {
 		log.Fatal(err)
 	}
 
-	db.MustExec(schema)
+	_, err = db.Exec(schema)
+	if err != nil {
+		log.Println("Error while executing migartion, it might already been executed.", err)
+	}
 	return db
 }
 
@@ -54,10 +58,15 @@ func initHydraAdmin() *admin.Client {
 }
 
 func main() {
+	log.SetFlags(log.Llongfile)
+
 	db := connectDatabase()
 	userRepo := users.NewRepo(db)
 
 	hydraAdmin := initHydraAdmin()
+
+	flowHandler := hydracon.NewHandler(userRepo, hydraAdmin)
+	httpserv := hydracon.NewLoginAndConsentServer(flowHandler)
 
 	opts := []grpc.ServerOption{
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
@@ -79,6 +88,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	go func() {
+		serv := httpserv
+		log.Println("HTTP server started on ", serv.Addr)
+		defer log.Fatal("HTTP server exited on ", serv.Addr)
+
+		serv.ListenAndServe()
+	}()
 
 	log.Println("gRPC server started")
 	defer log.Println("gRPC server exited")

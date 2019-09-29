@@ -21,7 +21,11 @@ func NewAuthServer(repo *users.Repo) *AuthServer {
 }
 
 func (s *AuthServer) GetUserInfo(ctx context.Context, _ *empty.Empty) (*pb.UserInfo, error) {
-	token := xctx.GetInrospectedToken(ctx)
+	token, err := xctx.GetInrospectedToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	spew.Dump(token)
 	panic("implement me")
 }
