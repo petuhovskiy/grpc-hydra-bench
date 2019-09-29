@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+service Money {
+    // MyBalance позволяет получить информацию о текущем балансе.
+    rpc MyBalance (google.protobuf.Empty) returns (Balance);
+
+    // Send выполняет перевод пользователю внутри системы.
+    rpc Send (SendRequest) returns (SendResponse);
+
+    // CreditBonus начисляет бонус за пользование системой,
+    // используется для получения монет для тестов.
+    rpc CreditBonus (google.protobuf.Empty) returns (CreditedBonus);
+}
+
+message Balance {
+    uint64 user_id = 1; // идентификатор владельца баланса
+    uint64 value = 2;
+}
+
+message SendRequest {
+    string recipient = 1; // текстовый идентификатор получателя
+    uint64 value = 2; // сумма перевода
+}
+
+message SendResponse {
+    uint64 operation_id = 1;
+}
+
+message CreditedBonus {
+    uint64 value = 1; // начисленный бонус
+}
